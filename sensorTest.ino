@@ -10,8 +10,9 @@ const double arm_length = 142.5 / 1000.0;  //  meters
 int currentReadings = 0;
 long reading = 0;
 
-int sensorCount = 1;
-Sensor::CounterSensor counter;
+Sensor::CounterSensor counter1;
+Sensor::CounterSensor counter2;
+int sensorCount = 2;
 
 
 Sensor::SensorManager manager(sensorCount, time_per_reading * readings);
@@ -19,12 +20,16 @@ Sensor::SensorManager manager(sensorCount, time_per_reading * readings);
 void setup() {
     Serial.begin(57600);
 
-    manager.addSensor(&counter);
+    counter1.setReadRate(1000);
+    counter2.setReadRate(2000);
+    manager.addSensor(&counter1);
+    manager.addSensor(&counter2);
     manager.setReadCallback(&readCallback);
 }
 
 void loop() {
-    manager.spin();
+    manager.spin(5000);
+    Serial.println(manager.getLastRead(&counter1));
 }
 
 void readCallback(double * results) {
