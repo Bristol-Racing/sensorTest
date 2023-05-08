@@ -1,9 +1,9 @@
 
 #include "sensors/testcounter.hpp"
+#include "sensors/throttle.hpp"
 #include "sensors/sensorManager.hpp"
 
-const int time_per_reading = 100;
-const int readings = 10;
+#define THROTTLE_PIN A0
 
 const double arm_length = 142.5 / 1000.0;  //  meters
 
@@ -12,8 +12,12 @@ long reading = 0;
 
 Sensor::CounterSensor counter1;
 Sensor::CounterSensor counter2;
-int sensorCount = 2;
+Sensor::Throttle throttle(THROTTLE_PIN, &throttleCallback);
+Sensor::CPUMonitor* monitor;
+int sensorCount = 4;
 
+const int time_per_reading = 100;
+const int readings = 10;
 
 Sensor::SensorManager manager(sensorCount, time_per_reading * readings);
 
@@ -21,9 +25,18 @@ void setup() {
     Serial.begin(57600);
 
     counter1.setReadRate(1000);
-    counter2.setReadRate(2000);
     manager.addSensor(&counter1);
+
+    counter2.setReadRate(2000);
     manager.addSensor(&counter2);
+
+    throttle.setTickRate(10);
+    throttle.setReadRate(50);
+    manager.addSensor(&throttle);
+
+    monitor = manager.getMonitor();
+    manager.addSensor(monitor);
+
     manager.setReadCallback(&readCallback);
 }
 
@@ -40,4 +53,10 @@ void readCallback(double * results) {
         Serial.print(results[i]);
     }
     Serial.println();
+}
+
+void throttleCallback(double voltage) {
+    // if (isnan(voltage)) {
+        Serial.println(voltage);
+    // }
 }
