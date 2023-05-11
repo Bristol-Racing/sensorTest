@@ -1,7 +1,7 @@
 {
     "board": "arduino:avr:uno",
     "programmer": "arduino:avrispmkii",
-    "port": "/dev/ttyACM1",
+    "port": "/dev/ttyACM2",
     "sketch": "sensorTest.ino",
     "output": "build"
 }
