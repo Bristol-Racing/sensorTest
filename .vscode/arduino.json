@@ -1,7 +1,8 @@
 {
-    "board": "arduino:avr:uno",
+    "board": "arduino:avr:mega",
     "programmer": "arduino:avrispmkii",
-    "port": "/dev/ttyACM2",
+    "port": "/dev/ttyACM0",
     "sketch": "sensorTest.ino",
-    "output": "build"
+    "output": "build",
+    "configuration": "cpu=atmega2560"
 }

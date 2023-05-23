@@ -10,25 +10,26 @@
 
 #define THROTTLE_PIN A0
 
-#define RFM95_CS  4
-#define RFM95_INT 3
-#define RFM95_RST 2
+#define RFM95_CS  41
+#define RFM95_INT 21
+#define RFM95_RST 45
 
 #define RF95_FREQ 915.0
 
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
-#define SD_CS 5
+#define SD_CS 39
+#define SD_ENABLE 37
 
 const char filename[] = "log.txt";
 
 // File object to represent file
-// File txtFile;
+File txtFile;
 
 // string to buffer output
 // String buffer;
 
-const double arm_length = 142.5 / 1000.0;  //  meters
+const float arm_length = 142.5 / 1000.0;  //  meters
 
 int currentReadings = 0;
 long reading = 0;
@@ -45,6 +46,9 @@ const int readings = 10;
 Sensor::SensorManager manager(sensorCount, time_per_reading * readings);
 
 void setup() {
+    pinMode(SD_ENABLE, OUTPUT);
+    digitalWrite(SD_ENABLE, LOW);
+
     pinMode(RFM95_RST, OUTPUT);
     digitalWrite(RFM95_RST, HIGH);
 
@@ -67,11 +71,13 @@ void setup() {
 
     // buffer.reserve(1024);
 
-    // bool sdStatus = SD.begin(SD_CS);
-    // CHECK(sdStatus == true, "SD initialisation failed.");
+    digitalWrite(SD_ENABLE, HIGH);
+    bool sdStatus = SD.begin(SD_CS);
+    CHECK(sdStatus == true, "SD initialisation failed.");
 
-    // txtFile = SD.open(filename, FILE_WRITE);
-    // CHECK(txtFile, "Error opening log file.");
+    txtFile = SD.open(filename, FILE_WRITE);
+    CHECK(txtFile, "Error opening log file.");
+    digitalWrite(SD_ENABLE, LOW);
 
     // txtFile.println("AAAAA");
 
@@ -98,24 +104,26 @@ void loop() {
     Serial.println(manager.getLastRead(&counter1));
 }
 
-void readCallback(double * results) {
-    rf95.send((uint8_t*)results, sensorCount * sizeof(double));
+void readCallback(float * results) {
+    rf95.send((uint8_t*)results, sensorCount * sizeof(float));
+    rf95.waitPacketSent();
 
+    digitalWrite(SD_ENABLE, HIGH);
     for (int i = 0; i < sensorCount; i++) {
         if (i > 0) {
             Serial.print(",");
-            // txtFile.print(",");
+            txtFile.print(",");
         }
         Serial.print(results[i]);
-        // txtFile.print(results[i]);
+        txtFile.print(results[i]);
     }
     Serial.println();
-    // txtFile.println();
+    txtFile.println();
+    digitalWrite(SD_ENABLE, LOW);
 
-    rf95.waitPacketSent();
 }
 
-void throttleCallback(double voltage) {
+void throttleCallback(float voltage) {
     // if (isnan(voltage)) {
         // Serial.println(voltage);
     // }
